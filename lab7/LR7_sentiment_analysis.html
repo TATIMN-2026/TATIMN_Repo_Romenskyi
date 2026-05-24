@@ -1,0 +1,2013 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="uk" xml:lang="uk"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.36">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="© Valeriy Sydorenko">
+<meta name="description" content="Технології аналізу текстової інформації та машинне навчання | КрНУ ім. М. Остроградського">
+
+<title>Лабораторна робота №7. Аналіз тональності тексту</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="LR7_sentiment_analysis_files/libs/clipboard/clipboard.min.js"></script>
+<script src="LR7_sentiment_analysis_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="LR7_sentiment_analysis_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="LR7_sentiment_analysis_files/libs/quarto-html/popper.min.js"></script>
+<script src="LR7_sentiment_analysis_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="LR7_sentiment_analysis_files/libs/quarto-html/anchor.min.js"></script>
+<link href="LR7_sentiment_analysis_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="LR7_sentiment_analysis_files/libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="LR7_sentiment_analysis_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="LR7_sentiment_analysis_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="LR7_sentiment_analysis_files/libs/bootstrap/bootstrap-efbb37e9afcc02144ebbc7afd12a776f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#мета-роботи" id="toc-мета-роботи" class="nav-link active" data-scroll-target="#мета-роботи">Мета роботи</a></li>
+  <li><a href="#що-ви-будете-вміти-після-виконання-роботи" id="toc-що-ви-будете-вміти-після-виконання-роботи" class="nav-link" data-scroll-target="#що-ви-будете-вміти-після-виконання-роботи">Що ви будете вміти після виконання роботи?</a></li>
+  <li><a href="#теоретичні-відомості" id="toc-теоретичні-відомості" class="nav-link" data-scroll-target="#теоретичні-відомості">Теоретичні відомості</a>
+  <ul class="collapse">
+  <li><a href="#лексиконний-підхід" id="toc-лексиконний-підхід" class="nav-link" data-scroll-target="#лексиконний-підхід">1. Лексиконний підхід</a></li>
+  <li><a href="#моделі-машинного-навчання" id="toc-моделі-машинного-навчання" class="nav-link" data-scroll-target="#моделі-машинного-навчання">2. Моделі машинного навчання</a></li>
+  </ul></li>
+  <li><a href="#постановка-завдання" id="toc-постановка-завдання" class="nav-link" data-scroll-target="#постановка-завдання">Постановка завдання</a></li>
+  <li><a href="#формування-базового-корпусу" id="toc-формування-базового-корпусу" class="nav-link" data-scroll-target="#формування-базового-корпусу">1. Формування базового корпусу</a></li>
+  <li><a href="#додавання-індивідуальної-частини-корпусу" id="toc-додавання-індивідуальної-частини-корпусу" class="nav-link" data-scroll-target="#додавання-індивідуальної-частини-корпусу">2. Додавання індивідуальної частини корпусу</a>
+  <ul class="collapse">
+  <li><a href="#за-бажанням-завантаження-індивідуального-корпусу-з-csv" id="toc-за-бажанням-завантаження-індивідуального-корпусу-з-csv" class="nav-link" data-scroll-target="#за-бажанням-завантаження-індивідуального-корпусу-з-csv">За бажанням: завантаження індивідуального корпусу з CSV</a></li>
+  </ul></li>
+  <li><a href="#обєднання-базового-та-індивідуального-корпусу" id="toc-обєднання-базового-та-індивідуального-корпусу" class="nav-link" data-scroll-target="#обєднання-базового-та-індивідуального-корпусу">3. Об’єднання базового та індивідуального корпусу</a></li>
+  <li><a href="#базове-очищення-тексту" id="toc-базове-очищення-тексту" class="nav-link" data-scroll-target="#базове-очищення-тексту">4. Базове очищення тексту</a></li>
+  <li><a href="#перевірка-розподілу-класів" id="toc-перевірка-розподілу-класів" class="nav-link" data-scroll-target="#перевірка-розподілу-класів">5. Перевірка розподілу класів</a></li>
+  <li><a href="#простий-лексиконний-baseline" id="toc-простий-лексиконний-baseline" class="nav-link" data-scroll-target="#простий-лексиконний-baseline">6. Простий лексиконний baseline</a></li>
+  <li><a href="#оцінювання-лексиконного-baseline" id="toc-оцінювання-лексиконного-baseline" class="nav-link" data-scroll-target="#оцінювання-лексиконного-baseline">7. Оцінювання лексиконного baseline</a></li>
+  <li><a href="#побудова-tf-idf-матриці" id="toc-побудова-tf-idf-матриці" class="nav-link" data-scroll-target="#побудова-tf-idf-матриці">8. Побудова TF-IDF-матриці</a></li>
+  <li><a href="#розбиття-даних-на-навчальну-та-тестову-вибірки" id="toc-розбиття-даних-на-навчальну-та-тестову-вибірки" class="nav-link" data-scroll-target="#розбиття-даних-на-навчальну-та-тестову-вибірки">9. Розбиття даних на навчальну та тестову вибірки</a></li>
+  <li><a href="#навчання-моделі-multinomial-naive-bayes" id="toc-навчання-моделі-multinomial-naive-bayes" class="nav-link" data-scroll-target="#навчання-моделі-multinomial-naive-bayes">10. Навчання моделі Multinomial Naive Bayes</a></li>
+  <li><a href="#навчання-моделі-logistic-regression" id="toc-навчання-моделі-logistic-regression" class="nav-link" data-scroll-target="#навчання-моделі-logistic-regression">11. Навчання моделі Logistic Regression</a></li>
+  <li><a href="#навчання-моделі-linear-svm" id="toc-навчання-моделі-linear-svm" class="nav-link" data-scroll-target="#навчання-моделі-linear-svm">12. Навчання моделі Linear SVM</a></li>
+  <li><a href="#порівняння-результатів-моделей" id="toc-порівняння-результатів-моделей" class="nav-link" data-scroll-target="#порівняння-результатів-моделей">13. Порівняння результатів моделей</a></li>
+  <li><a href="#матриця-помилок-для-найкращої-моделі" id="toc-матриця-помилок-для-найкращої-моделі" class="nav-link" data-scroll-target="#матриця-помилок-для-найкращої-моделі">14. Матриця помилок для найкращої моделі</a></li>
+  <li><a href="#перегляд-конкретних-прогнозів" id="toc-перегляд-конкретних-прогнозів" class="nav-link" data-scroll-target="#перегляд-конкретних-прогнозів">15. Перегляд конкретних прогнозів</a></li>
+  <li><a href="#інтерпретація-ознак-у-logistic-regression" id="toc-інтерпретація-ознак-у-logistic-regression" class="nav-link" data-scroll-target="#інтерпретація-ознак-у-logistic-regression">16. Інтерпретація ознак у Logistic Regression</a></li>
+  <li><a href="#короткий-експеримент-з-новими-текстами" id="toc-короткий-експеримент-з-новими-текстами" class="nav-link" data-scroll-target="#короткий-експеримент-з-новими-текстами">17. Короткий експеримент з новими текстами</a></li>
+  <li><a href="#коротка-інтерпретація-результатів" id="toc-коротка-інтерпретація-результатів" class="nav-link" data-scroll-target="#коротка-інтерпретація-результатів">18. Коротка інтерпретація результатів</a></li>
+  <li><a href="#висновки" id="toc-висновки" class="nav-link" data-scroll-target="#висновки">Висновки</a></li>
+  <li><a href="#індивідуальне-завдання" id="toc-індивідуальне-завдання" class="nav-link" data-scroll-target="#індивідуальне-завдання">Індивідуальне завдання</a></li>
+  <li><a href="#контрольні-питання" id="toc-контрольні-питання" class="nav-link" data-scroll-target="#контрольні-питання">Контрольні питання</a></li>
+  <li><a href="#вимоги-до-звіту" id="toc-вимоги-до-звіту" class="nav-link" data-scroll-target="#вимоги-до-звіту">Вимоги до звіту</a></li>
+  <li><a href="#додаток-а.-приклад-запуску-аналізу-для-зовнішнього-csv" id="toc-додаток-а.-приклад-запуску-аналізу-для-зовнішнього-csv" class="nav-link" data-scroll-target="#додаток-а.-приклад-запуску-аналізу-для-зовнішнього-csv">Додаток А. Приклад запуску аналізу для зовнішнього CSV</a></li>
+  <li><a href="#додаток-б.-приклад-дослідження-впливу-n-грам" id="toc-додаток-б.-приклад-дослідження-впливу-n-грам" class="nav-link" data-scroll-target="#додаток-б.-приклад-дослідження-впливу-n-грам">Додаток Б. Приклад дослідження впливу n-грам</a></li>
+  <li><a href="#додаток-в.-приклад-збереження-результатів-у-csv" id="toc-додаток-в.-приклад-збереження-результатів-у-csv" class="nav-link" data-scroll-target="#додаток-в.-приклад-збереження-результатів-у-csv">Додаток В. Приклад збереження результатів у CSV</a></li>
+  <li><a href="#список-літератури" id="toc-список-літератури" class="nav-link" data-scroll-target="#список-літератури">Список літератури</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Лабораторна робота №7. Аналіз тональності тексту</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li></ul></div></div>
+</div>
+
+<div>
+  <div class="description">
+    Технології аналізу текстової інформації та машинне навчання | КрНУ ім. М. Остроградського
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>© <a href="https://github.com/">Valeriy Sydorenko</a> </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">24 травня 2026 р.</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Примітка
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Для виконання роботи потрібно опрацювати <em>лекцію 7</em> – насамперед питання <em>поняття тональності</em>, <em>полярності і суб’єктивності</em>, <em>лексиконних методів</em>, <em>побудови моделей sentiment analysis</em> та <em>метрик оцінювання якості</em>.</p>
+<p>Зошит побудовано так, щоб його можна було виконувати послідовно навіть на <em>невеликому навчальному корпусі</em>. Основна ідея роботи полягає у тому, щоб пройти повний шлях від <em>розміченого набору повідомлень</em> до <em>побудови і порівняння моделей аналізу тональності</em>.</p>
+</div>
+</div>
+<section id="мета-роботи" class="level2">
+<h2 class="anchored" data-anchor-id="мета-роботи">Мета роботи</h2>
+<p>Опанувати базові підходи до <em>аналізу тональності тексту</em>: формування розміченого корпусу, базове очищення повідомлень, побудову <em>лексиконного baseline</em>, векторизацію текстів за допомогою <em>TF-IDF</em>, навчання моделей <em>Naive Bayes</em>, <em>Logistic Regression</em> та <em>Linear SVM</em>, а також оцінювання якості класифікації за стандартними метриками.</p>
+</section>
+<section id="що-ви-будете-вміти-після-виконання-роботи" class="level2">
+<h2 class="anchored" data-anchor-id="що-ви-будете-вміти-після-виконання-роботи">Що ви будете вміти після виконання роботи?</h2>
+<p>Після виконання лабораторної роботи ви будете вміти:</p>
+<ul>
+<li>формувати невеликий <em>розмічений корпус</em> для задач sentiment analysis;</li>
+<li>виконувати базове очищення коротких повідомлень;</li>
+<li>застосовувати <em>простий словниковий підхід</em> до оцінювання тональності;</li>
+<li>будувати <em>TF-IDF</em>-представлення текстів;</li>
+<li>навчати моделі <em>Naive Bayes</em>, <em>Logistic Regression</em> та <em>Linear SVM</em> для класифікації тональності;</li>
+<li>порівнювати моделі за метриками <em>accuracy</em>, <em>precision</em>, <em>recall</em> та <em>F1-score</em>;</li>
+<li>будувати <em>матрицю помилок</em> і аналізувати типові хибні прогнози;</li>
+<li>перевіряти модель на <em>нових власних фразах</em>.</li>
+</ul>
+</section>
+<section id="теоретичні-відомості" class="level2">
+<h2 class="anchored" data-anchor-id="теоретичні-відомості">Теоретичні відомості</h2>
+<p>У лекції 7 було показано, що <em>аналіз тональності тексту</em> є окремим прикладним випадком задачі класифікації текстів. На відміну від тематичної класифікації, де нас цікавить зміст документа, у sentiment analysis нас цікавить <em>оцінна спрямованість</em> висловлювання.</p>
+<p>У найпростішому варіанті будемо розглядати три класи:</p>
+<ul>
+<li><code>positive</code> – позитивна тональність;</li>
+<li><code>negative</code> – негативна тональність;</li>
+<li><code>neutral</code> – нейтральне повідомлення без виразної оцінки.</li>
+</ul>
+<p>У практиці аналізу тональності часто використовують два базові підходи.</p>
+<section id="лексиконний-підхід" class="level3">
+<h3 class="anchored" data-anchor-id="лексиконний-підхід">1. Лексиконний підхід</h3>
+<p>Маємо словник оцінних слів із вагами. Для кожного тексту підсумовуємо знайдені оцінки і на основі знака або величини підсумку робимо висновок про тональність.</p>
+</section>
+<section id="моделі-машинного-навчання" class="level3">
+<h3 class="anchored" data-anchor-id="моделі-машинного-навчання">2. Моделі машинного навчання</h3>
+<p>Маємо розмічений корпус повідомлень. Після очищення текст перетворюється на <em>вектор ознак</em>, наприклад через <em>TF-IDF</em>. Далі модель навчається зіставляти ознаки тексту з мітками класів. У цій роботі буде використано три класичні моделі:</p>
+<ul>
+<li><em>Multinomial Naive Bayes</em>;</li>
+<li><em>Logistic Regression</em>;</li>
+<li><em>Linear SVM</em>.</li>
+</ul>
+<p>Якість моделі оцінюємо на <em>тестовій вибірці</em>, яка не використовувалась під час навчання.</p>
+</section>
+</section>
+<section id="постановка-завдання" class="level2">
+<h2 class="anchored" data-anchor-id="постановка-завдання">Постановка завдання</h2>
+<p>Потрібно сформувати <em>навчальний корпус повідомлень</em> і виконати для нього такі кроки:</p>
+<ol type="1">
+<li>підготувати <em>розмічений</em> корпус текстів;</li>
+<li>виконати базове очищення повідомлень;</li>
+<li>побудувати <em>простий лексиконний baseline</em>;</li>
+<li>побудувати <em>TF-IDF</em>-матрицю;</li>
+<li>розбити дані на <em>навчальну</em> та <em>тестову</em> вибірки;</li>
+<li>навчити моделі <em>Naive Bayes</em>, <em>Logistic Regression</em> та <em>Linear SVM</em>;</li>
+<li>порівняти якість моделей;</li>
+<li>побудувати <em>матрицю помилок</em> для найкращої моделі;</li>
+<li>перевірити роботу моделі на <em>нових прикладах</em>;</li>
+<li>зробити змістовні висновки.</li>
+</ol>
+<div id="482033c3" class="cell" data-execution_count="1">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Базові імпорти</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.feature_extraction.text <span class="im">import</span> TfidfVectorizer</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> accuracy_score, classification_report, confusion_matrix, ConfusionMatrixDisplay</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.naive_bayes <span class="im">import</span> MultinomialNB</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.svm <span class="im">import</span> LinearSVC</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">"figure.figsize"</span>] <span class="op">=</span> (<span class="dv">8</span>, <span class="dv">4</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">"display.max_colwidth"</span>, <span class="dv">120</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="формування-базового-корпусу" class="level2">
+<h2 class="anchored" data-anchor-id="формування-базового-корпусу">1. Формування базового корпусу</h2>
+<p>Нижче наведено невеликий навчальний корпус українською мовою. Повідомлення спеціально підібрано так, щоб у корпусі були <em>три класи тональності</em>:</p>
+<ul>
+<li><code>positive</code> – позитивна оцінка;</li>
+<li><code>negative</code> – негативна оцінка;</li>
+<li><code>neutral</code> – нейтральний опис без виразної оцінки.</li>
+</ul>
+<p>Корпус невеликий, але для навчальних цілей цього достатньо.</p>
+<div id="56ea322a" class="cell" data-execution_count="2">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>base_corpus <span class="op">=</span> [</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b001"</span>, <span class="st">"positive"</span>, <span class="st">"сервіс працює швидко і дуже зручно"</span>),</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b002"</span>, <span class="st">"positive"</span>, <span class="st">"мені сподобався новий дизайн застосунку"</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b003"</span>, <span class="st">"positive"</span>, <span class="st">"платформа стабільна та корисна для роботи"</span>),</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b004"</span>, <span class="st">"positive"</span>, <span class="st">"це чудовий інструмент для аналізу повідомлень"</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b005"</span>, <span class="st">"positive"</span>, <span class="st">"інтерфейс зрозумілий і приємний у використанні"</span>),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b006"</span>, <span class="st">"positive"</span>, <span class="st">"оновлення значно покращило якість роботи системи"</span>),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b007"</span>, <span class="st">"positive"</span>, <span class="st">"підтримка відповіла швидко і допомогла вирішити проблему"</span>),</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b008"</span>, <span class="st">"positive"</span>, <span class="st">"результат виявився точним і дуже корисним"</span>),</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b009"</span>, <span class="st">"positive"</span>, <span class="st">"додаток працює надійно навіть при великому навантаженні"</span>),</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b010"</span>, <span class="st">"positive"</span>, <span class="st">"курс побудовано логічно і матеріал пояснено добре"</span>),</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b011"</span>, <span class="st">"positive"</span>, <span class="st">"мені дуже сподобалась функція автоматичного аналізу"</span>),</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b012"</span>, <span class="st">"positive"</span>, <span class="st">"цей підхід дає якісні та зрозумілі результати"</span>),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b013"</span>, <span class="st">"positive"</span>, <span class="st">"система коректно визначає позитивні повідомлення"</span>),</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b014"</span>, <span class="st">"positive"</span>, <span class="st">"робота виконана акуратно і виглядає переконливо"</span>),</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b015"</span>, <span class="st">"positive"</span>, <span class="st">"програма зручна швидка і достатньо точна"</span>),</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b016"</span>, <span class="st">"negative"</span>, <span class="st">"сервіс працює повільно і часто зависає"</span>),</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b017"</span>, <span class="st">"negative"</span>, <span class="st">"новий дизайн виявився незручним і заплутаним"</span>),</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b018"</span>, <span class="st">"negative"</span>, <span class="st">"платформа нестабільна та дає багато помилок"</span>),</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b019"</span>, <span class="st">"negative"</span>, <span class="st">"це поганий інструмент для аналізу повідомлень"</span>),</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b020"</span>, <span class="st">"negative"</span>, <span class="st">"інтерфейс незрозумілий і дратує під час роботи"</span>),</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b021"</span>, <span class="st">"negative"</span>, <span class="st">"оновлення лише погіршило роботу системи"</span>),</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b022"</span>, <span class="st">"negative"</span>, <span class="st">"підтримка відповіла із запізненням і не допомогла"</span>),</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b023"</span>, <span class="st">"negative"</span>, <span class="st">"результат виявився неточним і мало корисним"</span>),</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b024"</span>, <span class="st">"negative"</span>, <span class="st">"додаток часто аварійно завершує роботу"</span>),</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b025"</span>, <span class="st">"negative"</span>, <span class="st">"курс подано хаотично і пояснення слабкі"</span>),</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b026"</span>, <span class="st">"negative"</span>, <span class="st">"мені не сподобалась якість автоматичного аналізу"</span>),</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b027"</span>, <span class="st">"negative"</span>, <span class="st">"цей підхід дає суперечливі та ненадійні результати"</span>),</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b028"</span>, <span class="st">"negative"</span>, <span class="st">"система помилково визначає тональність повідомлень"</span>),</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b029"</span>, <span class="st">"negative"</span>, <span class="st">"робота виконана недбало і виглядає сирою"</span>),</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b030"</span>, <span class="st">"negative"</span>, <span class="st">"програма незручна повільна і неточна"</span>),</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b031"</span>, <span class="st">"neutral"</span>, <span class="st">"сьогодні система обробила двадцять повідомлень"</span>),</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b032"</span>, <span class="st">"neutral"</span>, <span class="st">"користувач надіслав текст у форму аналізу"</span>),</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b033"</span>, <span class="st">"neutral"</span>, <span class="st">"звіт містить таблицю графік і короткий коментар"</span>),</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b034"</span>, <span class="st">"neutral"</span>, <span class="st">"модель було навчено на розміченому корпусі текстів"</span>),</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b035"</span>, <span class="st">"neutral"</span>, <span class="st">"у наборі даних є три класи тональності"</span>),</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b036"</span>, <span class="st">"neutral"</span>, <span class="st">"після очищення тексту побудовано tf idf представлення"</span>),</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b037"</span>, <span class="st">"neutral"</span>, <span class="st">"експеримент виконано у середовищі python"</span>),</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b038"</span>, <span class="st">"neutral"</span>, <span class="st">"дослідник зберіг результати у файл csv"</span>),</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b039"</span>, <span class="st">"neutral"</span>, <span class="st">"повідомлення містить емодзі та кілька хештегів"</span>),</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b040"</span>, <span class="st">"neutral"</span>, <span class="st">"у статті розглянуто методи аналізу тональності"</span>),</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b041"</span>, <span class="st">"neutral"</span>, <span class="st">"вибірка поділена на навчальну та тестову частини"</span>),</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b042"</span>, <span class="st">"neutral"</span>, <span class="st">"алгоритм повернув прогноз для кожного документа"</span>),</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b043"</span>, <span class="st">"neutral"</span>, <span class="st">"корпус складається з коротких повідомлень українською мовою"</span>),</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b044"</span>, <span class="st">"neutral"</span>, <span class="st">"у зошиті використано pandas matplotlib та sklearn"</span>),</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"b045"</span>, <span class="st">"neutral"</span>, <span class="st">"після навчання моделі обчислено метрики якості"</span>),</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>corpus_df <span class="op">=</span> pd.DataFrame(base_corpus, columns<span class="op">=</span>[<span class="st">"doc_id"</span>, <span class="st">"label"</span>, <span class="st">"text"</span>])</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>corpus_df.head(<span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">doc_id</th>
+<th data-quarto-table-cell-role="th">label</th>
+<th data-quarto-table-cell-role="th">text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>b001</td>
+<td>positive</td>
+<td>сервіс працює швидко і дуже зручно</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>b002</td>
+<td>positive</td>
+<td>мені сподобався новий дизайн застосунку</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>b003</td>
+<td>positive</td>
+<td>платформа стабільна та корисна для роботи</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>b004</td>
+<td>positive</td>
+<td>це чудовий інструмент для аналізу повідомлень</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>b005</td>
+<td>positive</td>
+<td>інтерфейс зрозумілий і приємний у використанні</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>b006</td>
+<td>positive</td>
+<td>оновлення значно покращило якість роботи системи</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>b007</td>
+<td>positive</td>
+<td>підтримка відповіла швидко і допомогла вирішити проблему</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>b008</td>
+<td>positive</td>
+<td>результат виявився точним і дуже корисним</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>b009</td>
+<td>positive</td>
+<td>додаток працює надійно навіть при великому навантаженні</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>b010</td>
+<td>positive</td>
+<td>курс побудовано логічно і матеріал пояснено добре</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="додавання-індивідуальної-частини-корпусу" class="level2">
+<h2 class="anchored" data-anchor-id="додавання-індивідуальної-частини-корпусу">2. Додавання індивідуальної частини корпусу</h2>
+<p>За аналогією з попередніми лабораторними роботами, ви можете:</p>
+<ul>
+<li>дописати власні повідомлення безпосередньо у список <code>student_docs</code>;</li>
+<li>або підключити окремий CSV-файл з індивідуальною вибіркою.</li>
+</ul>
+<p>Рекомендується додати <em>6–9 коротких повідомлень</em> так, щоб серед них були приклади різної тональності.</p>
+<div id="cffc9a51" class="cell" data-execution_count="3">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ДОДАЙТЕ СЮДИ ВЛАСНІ РОЗМІЧЕНІ ПОВІДОМЛЕННЯ</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Формат: ("s001", "positive", "текст повідомлення")</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>student_docs <span class="op">=</span> [</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"s001"</span>, <span class="st">"positive"</span>, <span class="st">"сервіс виявився дуже корисним і зручним"</span>),</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"s002"</span>, <span class="st">"negative"</span>, <span class="st">"цей інтерфейс дратує і працює нестабільно"</span>),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"s003"</span>, <span class="st">"neutral"</span>, <span class="st">"у звіті наведено результати за три дні"</span>),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>student_df <span class="op">=</span> pd.DataFrame(student_docs, columns<span class="op">=</span>[<span class="st">"doc_id"</span>, <span class="st">"label"</span>, <span class="st">"text"</span>])</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>student_df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">doc_id</th>
+<th data-quarto-table-cell-role="th">label</th>
+<th data-quarto-table-cell-role="th">text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>s001</td>
+<td>positive</td>
+<td>сервіс виявився дуже корисним і зручним</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>s002</td>
+<td>negative</td>
+<td>цей інтерфейс дратує і працює нестабільно</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>s003</td>
+<td>neutral</td>
+<td>у звіті наведено результати за три дні</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<section id="за-бажанням-завантаження-індивідуального-корпусу-з-csv" class="level3">
+<h3 class="anchored" data-anchor-id="за-бажанням-завантаження-індивідуального-корпусу-з-csv">За бажанням: завантаження індивідуального корпусу з CSV</h3>
+<p>Якщо у вас уже є окремий файл з розміченими повідомленнями, його можна підключити замість ручного списку. Очікується структура з трьома стовпцями:</p>
+<ul>
+<li><code>doc_id</code></li>
+<li><code>text</code></li>
+<li><code>label</code></li>
+</ul>
+<div id="74e15016" class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># csv_path = Path("data\lab7_sentiment_ua.csv")</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># if csv_path.exists():</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#     student_df = pd.read_csv(csv_path)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#     print("CSV успішно завантажено:", student_df.shape)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># else:</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#     print("Файл не знайдено")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+</section>
+<section id="обєднання-базового-та-індивідуального-корпусу" class="level2">
+<h2 class="anchored" data-anchor-id="обєднання-базового-та-індивідуального-корпусу">3. Об’єднання базового та індивідуального корпусу</h2>
+<p>Після цього формуємо <em>єдиний корпус</em>, який і буде використовуватись у подальшому аналізі.</p>
+<div id="f27fba6a" class="cell" data-execution_count="4">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>corpus_df <span class="op">=</span> pd.concat([corpus_df, student_df], ignore_index<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>corpus_df[<span class="st">"doc_id"</span>] <span class="op">=</span> corpus_df[<span class="st">"doc_id"</span>].astype(<span class="bu">str</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>corpus_df[<span class="st">"label"</span>] <span class="op">=</span> corpus_df[<span class="st">"label"</span>].astype(<span class="bu">str</span>).<span class="bu">str</span>.strip().<span class="bu">str</span>.lower()</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>corpus_df[<span class="st">"text"</span>] <span class="op">=</span> corpus_df[<span class="st">"text"</span>].astype(<span class="bu">str</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Розмір корпусу:"</span>, corpus_df.shape)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>corpus_df.sample(<span class="bu">min</span>(<span class="dv">8</span>, <span class="bu">len</span>(corpus_df)), random_state<span class="op">=</span><span class="dv">42</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Розмір корпусу: (48, 3)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">doc_id</th>
+<th data-quarto-table-cell-role="th">label</th>
+<th data-quarto-table-cell-role="th">text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">27</th>
+<td>b028</td>
+<td>negative</td>
+<td>система помилково визначає тональність повідомлень</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">40</th>
+<td>b041</td>
+<td>neutral</td>
+<td>вибірка поділена на навчальну та тестову частини</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">26</th>
+<td>b027</td>
+<td>negative</td>
+<td>цей підхід дає суперечливі та ненадійні результати</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">43</th>
+<td>b044</td>
+<td>neutral</td>
+<td>у зошиті використано pandas matplotlib та sklearn</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">24</th>
+<td>b025</td>
+<td>negative</td>
+<td>курс подано хаотично і пояснення слабкі</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">37</th>
+<td>b038</td>
+<td>neutral</td>
+<td>дослідник зберіг результати у файл csv</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">12</th>
+<td>b013</td>
+<td>positive</td>
+<td>система коректно визначає позитивні повідомлення</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">19</th>
+<td>b020</td>
+<td>negative</td>
+<td>інтерфейс незрозумілий і дратує під час роботи</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="базове-очищення-тексту" class="level2">
+<h2 class="anchored" data-anchor-id="базове-очищення-тексту">4. Базове очищення тексту</h2>
+<p>Для навчальної задачі використаємо просту функцію очищення:</p>
+<ul>
+<li>переведення до нижнього регістру;</li>
+<li>видалення всіх символів, окрім літер, цифр і пробілів;</li>
+<li>усунення зайвих пробілів.</li>
+</ul>
+<div id="c0713107" class="cell" data-execution_count="5">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> clean_text(text: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> text.lower()</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> re.sub(<span class="vs">r"</span><span class="pp">[^а-щьюяєіїґa-z0-9</span><span class="dv">\s</span><span class="pp">]</span><span class="vs">"</span>, <span class="st">" "</span>, text)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> re.sub(<span class="vs">r"</span><span class="dv">\s</span><span class="op">+</span><span class="vs">"</span>, <span class="st">" "</span>, text).strip()</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> text</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>corpus_df[<span class="st">"clean_text"</span>] <span class="op">=</span> corpus_df[<span class="st">"text"</span>].<span class="bu">apply</span>(clean_text)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>corpus_df[[<span class="st">"doc_id"</span>, <span class="st">"label"</span>, <span class="st">"text"</span>, <span class="st">"clean_text"</span>]].head(<span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">doc_id</th>
+<th data-quarto-table-cell-role="th">label</th>
+<th data-quarto-table-cell-role="th">text</th>
+<th data-quarto-table-cell-role="th">clean_text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>b001</td>
+<td>positive</td>
+<td>сервіс працює швидко і дуже зручно</td>
+<td>сервіс працює швидко і дуже зручно</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>b002</td>
+<td>positive</td>
+<td>мені сподобався новий дизайн застосунку</td>
+<td>мені сподобався новий дизайн застосунку</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>b003</td>
+<td>positive</td>
+<td>платформа стабільна та корисна для роботи</td>
+<td>платформа стабільна та корисна для роботи</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>b004</td>
+<td>positive</td>
+<td>це чудовий інструмент для аналізу повідомлень</td>
+<td>це чудовий інструмент для аналізу повідомлень</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>b005</td>
+<td>positive</td>
+<td>інтерфейс зрозумілий і приємний у використанні</td>
+<td>інтерфейс зрозумілий і приємний у використанні</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>b006</td>
+<td>positive</td>
+<td>оновлення значно покращило якість роботи системи</td>
+<td>оновлення значно покращило якість роботи системи</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>b007</td>
+<td>positive</td>
+<td>підтримка відповіла швидко і допомогла вирішити проблему</td>
+<td>підтримка відповіла швидко і допомогла вирішити проблему</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>b008</td>
+<td>positive</td>
+<td>результат виявився точним і дуже корисним</td>
+<td>результат виявився точним і дуже корисним</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>b009</td>
+<td>positive</td>
+<td>додаток працює надійно навіть при великому навантаженні</td>
+<td>додаток працює надійно навіть при великому навантаженні</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>b010</td>
+<td>positive</td>
+<td>курс побудовано логічно і матеріал пояснено добре</td>
+<td>курс побудовано логічно і матеріал пояснено добре</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="перевірка-розподілу-класів" class="level2">
+<h2 class="anchored" data-anchor-id="перевірка-розподілу-класів">5. Перевірка розподілу класів</h2>
+<p>Перед навчанням моделей варто перевірити, наскільки збалансованим є корпус за класами тональності.</p>
+<div id="6c270dc1" class="cell" data-execution_count="6">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>class_counts <span class="op">=</span> corpus_df[<span class="st">"label"</span>].value_counts().sort_index()</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>class_counts</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>label
+negative    16
+neutral     16
+positive    16
+Name: count, dtype: int64</code></pre>
+</div>
+</div>
+<div id="c3930a61" class="cell" data-execution_count="7">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">4</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>class_counts.plot(kind<span class="op">=</span><span class="st">"bar"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Розподіл повідомлень за класами тональності"</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Клас"</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Кількість повідомлень"</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>plt.xticks(rotation<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="LR7_sentiment_analysis_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="простий-лексиконний-baseline" class="level2">
+<h2 class="anchored" data-anchor-id="простий-лексиконний-baseline">6. Простий лексиконний baseline</h2>
+<p>У лекції 7 розглядався <em>лексиконний підхід</em>. Нижче реалізовано дуже спрощений варіант такого підходу. Він не претендує на високу якість, але дає важливу <em>базову точку відліку</em>.</p>
+<div id="074a2234" class="cell" data-execution_count="8">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sentiment_lexicon <span class="op">=</span> {</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"чудовий"</span>: <span class="dv">2</span>, <span class="st">"добрий"</span>: <span class="dv">1</span>, <span class="st">"зручний"</span>: <span class="dv">1</span>, <span class="st">"корисний"</span>: <span class="dv">1</span>, <span class="st">"приємний"</span>: <span class="dv">1</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"швидко"</span>: <span class="dv">1</span>, <span class="st">"швидкий"</span>: <span class="dv">1</span>, <span class="st">"надійний"</span>: <span class="dv">1</span>, <span class="st">"стабільна"</span>: <span class="dv">1</span>, <span class="st">"стабільний"</span>: <span class="dv">1</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"сподобався"</span>: <span class="dv">1</span>, <span class="st">"покращило"</span>: <span class="dv">1</span>, <span class="st">"точним"</span>: <span class="dv">1</span>, <span class="st">"якісні"</span>: <span class="dv">1</span>, <span class="st">"добре"</span>: <span class="dv">1</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"поганий"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"повільно"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"повільний"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"нестабільно"</span>: <span class="op">-</span><span class="dv">1</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"нестабільна"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"помилок"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"незручним"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"незручна"</span>: <span class="op">-</span><span class="dv">1</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"дратує"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"погіршило"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"неточним"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"хаотично"</span>: <span class="op">-</span><span class="dv">1</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"слабкі"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"недбало"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"неточна"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"зависає"</span>: <span class="op">-</span><span class="dv">1</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> lexicon_score(text: <span class="bu">str</span>, lexicon: <span class="bu">dict</span>) <span class="op">-&gt;</span> <span class="bu">int</span>:</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> text.split()</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">sum</span>(lexicon.get(token, <span class="dv">0</span>) <span class="cf">for</span> token <span class="kw">in</span> tokens)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> lexicon_predict(text: <span class="bu">str</span>, lexicon: <span class="bu">dict</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    score <span class="op">=</span> lexicon_score(text, lexicon)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> score <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">"positive"</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> score <span class="op">&lt;</span> <span class="dv">0</span>:</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">"negative"</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="st">"neutral"</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>corpus_df[<span class="st">"lexicon_score"</span>] <span class="op">=</span> corpus_df[<span class="st">"clean_text"</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: lexicon_score(x, sentiment_lexicon))</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>corpus_df[<span class="st">"lexicon_pred"</span>] <span class="op">=</span> corpus_df[<span class="st">"clean_text"</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: lexicon_predict(x, sentiment_lexicon))</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>corpus_df[[<span class="st">"text"</span>, <span class="st">"label"</span>, <span class="st">"lexicon_score"</span>, <span class="st">"lexicon_pred"</span>]].head(<span class="dv">12</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">text</th>
+<th data-quarto-table-cell-role="th">label</th>
+<th data-quarto-table-cell-role="th">lexicon_score</th>
+<th data-quarto-table-cell-role="th">lexicon_pred</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>сервіс працює швидко і дуже зручно</td>
+<td>positive</td>
+<td>1</td>
+<td>positive</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>мені сподобався новий дизайн застосунку</td>
+<td>positive</td>
+<td>1</td>
+<td>positive</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>платформа стабільна та корисна для роботи</td>
+<td>positive</td>
+<td>1</td>
+<td>positive</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>це чудовий інструмент для аналізу повідомлень</td>
+<td>positive</td>
+<td>2</td>
+<td>positive</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>інтерфейс зрозумілий і приємний у використанні</td>
+<td>positive</td>
+<td>1</td>
+<td>positive</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>оновлення значно покращило якість роботи системи</td>
+<td>positive</td>
+<td>1</td>
+<td>positive</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>підтримка відповіла швидко і допомогла вирішити проблему</td>
+<td>positive</td>
+<td>1</td>
+<td>positive</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>результат виявився точним і дуже корисним</td>
+<td>positive</td>
+<td>1</td>
+<td>positive</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>додаток працює надійно навіть при великому навантаженні</td>
+<td>positive</td>
+<td>0</td>
+<td>neutral</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>курс побудовано логічно і матеріал пояснено добре</td>
+<td>positive</td>
+<td>1</td>
+<td>positive</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">10</th>
+<td>мені дуже сподобалась функція автоматичного аналізу</td>
+<td>positive</td>
+<td>0</td>
+<td>neutral</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">11</th>
+<td>цей підхід дає якісні та зрозумілі результати</td>
+<td>positive</td>
+<td>1</td>
+<td>positive</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="оцінювання-лексиконного-baseline" class="level2">
+<h2 class="anchored" data-anchor-id="оцінювання-лексиконного-baseline">7. Оцінювання лексиконного baseline</h2>
+<p>Оскільки словниковий підхід не потребує навчання, його можна відразу перевірити на всьому корпусі. Це не зовсім те саме, що чесна тестова оцінка для моделей машинного навчання, але для <em>baseline</em> такий крок є методично виправданим.</p>
+<div id="6f16092c" class="cell" data-execution_count="9">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>lexicon_accuracy <span class="op">=</span> accuracy_score(corpus_df[<span class="st">"label"</span>], corpus_df[<span class="st">"lexicon_pred"</span>])</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Accuracy лексиконного baseline:"</span>, <span class="bu">round</span>(lexicon_accuracy, <span class="dv">4</span>))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(classification_report(corpus_df[<span class="st">"label"</span>], corpus_df[<span class="st">"lexicon_pred"</span>], zero_division<span class="op">=</span><span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Accuracy лексиконного baseline: 0.7708
+
+              precision    recall  f1-score   support
+
+    negative       1.00      0.69      0.81        16
+     neutral       0.59      1.00      0.74        16
+    positive       1.00      0.62      0.77        16
+
+    accuracy                           0.77        48
+   macro avg       0.86      0.77      0.78        48
+weighted avg       0.86      0.77      0.78        48
+</code></pre>
+</div>
+</div>
+</section>
+<section id="побудова-tf-idf-матриці" class="level2">
+<h2 class="anchored" data-anchor-id="побудова-tf-idf-матриці">8. Побудова TF-IDF-матриці</h2>
+<p>Далі переходимо до моделей машинного навчання. Для цього перетворимо очищені тексти на числові вектори за допомогою <em>TF-IDF</em>. Використаємо уніграми та біграми, щоб частково врахувати короткі словосполучення.</p>
+<div id="a6c90976" class="cell" data-execution_count="10">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>vectorizer <span class="op">=</span> TfidfVectorizer(min_df<span class="op">=</span><span class="dv">1</span>, ngram_range<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> vectorizer.fit_transform(corpus_df[<span class="st">"clean_text"</span>])</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> corpus_df[<span class="st">"label"</span>]</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Розмір TF-IDF-матриці:"</span>, X.shape)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Кількість ознак:"</span>, <span class="bu">len</span>(vectorizer.get_feature_names_out()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Розмір TF-IDF-матриці: (48, 394)
+Кількість ознак: 394</code></pre>
+</div>
+</div>
+</section>
+<section id="розбиття-даних-на-навчальну-та-тестову-вибірки" class="level2">
+<h2 class="anchored" data-anchor-id="розбиття-даних-на-навчальну-та-тестову-вибірки">9. Розбиття даних на навчальну та тестову вибірки</h2>
+<p>Щоб оцінити узагальнювальну здатність моделей, поділимо корпус на дві частини:</p>
+<ul>
+<li><em>навчальна вибірка</em> – для навчання;</li>
+<li><em>тестова вибірка</em> – для незалежної перевірки.</li>
+</ul>
+<div id="88b5411e" class="cell" data-execution_count="11">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test, idx_train, idx_test <span class="op">=</span> train_test_split(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    X, y, corpus_df.index,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    test_size<span class="op">=</span><span class="fl">0.3</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">42</span>,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    stratify<span class="op">=</span>y</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Навчальна вибірка:"</span>, X_train.shape)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Тестова вибірка:"</span>, X_test.shape)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Навчальна вибірка: (33, 394)
+Тестова вибірка: (15, 394)</code></pre>
+</div>
+</div>
+</section>
+<section id="навчання-моделі-multinomial-naive-bayes" class="level2">
+<h2 class="anchored" data-anchor-id="навчання-моделі-multinomial-naive-bayes">10. Навчання моделі Multinomial Naive Bayes</h2>
+<p>Ця модель добре підходить для задач класифікації текстів, коли ознаки представлені частотними або <em>TF-IDF</em>-характеристиками.</p>
+<div id="97450520" class="cell" data-execution_count="12">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>nb_model <span class="op">=</span> MultinomialNB()</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>nb_model.fit(X_train, y_train)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>y_pred_nb <span class="op">=</span> nb_model.predict(X_test)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Accuracy Naive Bayes:"</span>, <span class="bu">round</span>(accuracy_score(y_test, y_pred_nb), <span class="dv">4</span>))</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(classification_report(y_test, y_pred_nb, zero_division<span class="op">=</span><span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Accuracy Naive Bayes: 0.2667
+
+              precision    recall  f1-score   support
+
+    negative       0.00      0.00      0.00         5
+     neutral       0.50      0.40      0.44         5
+    positive       0.25      0.40      0.31         5
+
+    accuracy                           0.27        15
+   macro avg       0.25      0.27      0.25        15
+weighted avg       0.25      0.27      0.25        15
+</code></pre>
+</div>
+</div>
+</section>
+<section id="навчання-моделі-logistic-regression" class="level2">
+<h2 class="anchored" data-anchor-id="навчання-моделі-logistic-regression">11. Навчання моделі Logistic Regression</h2>
+<p><em>Логістична регресія</em> є однією з найпоширеніших моделей для задач класифікації тексту. Вона добре працює з розрідженими векторними представленнями і дозволяє інтерпретувати ваги ознак.</p>
+<div id="63f03234" class="cell" data-execution_count="13">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>lr_model <span class="op">=</span> LogisticRegression(max_iter<span class="op">=</span><span class="dv">3000</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>lr_model.fit(X_train, y_train)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>y_pred_lr <span class="op">=</span> lr_model.predict(X_test)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Accuracy Logistic Regression:"</span>, <span class="bu">round</span>(accuracy_score(y_test, y_pred_lr), <span class="dv">4</span>))</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(classification_report(y_test, y_pred_lr, zero_division<span class="op">=</span><span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Accuracy Logistic Regression: 0.4
+
+              precision    recall  f1-score   support
+
+    negative       0.00      0.00      0.00         5
+     neutral       0.67      0.80      0.73         5
+    positive       0.29      0.40      0.33         5
+
+    accuracy                           0.40        15
+   macro avg       0.32      0.40      0.35        15
+weighted avg       0.32      0.40      0.35        15
+</code></pre>
+</div>
+</div>
+</section>
+<section id="навчання-моделі-linear-svm" class="level2">
+<h2 class="anchored" data-anchor-id="навчання-моделі-linear-svm">12. Навчання моделі Linear SVM</h2>
+<p><em>Linear SVM</em> часто показує дуже хороші результати у задачах текстової класифікації, особливо коли ознаковий простір має велику розмірність.</p>
+<div id="660ab2fc" class="cell" data-execution_count="14">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>svm_model <span class="op">=</span> LinearSVC()</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>svm_model.fit(X_train, y_train)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>y_pred_svm <span class="op">=</span> svm_model.predict(X_test)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Accuracy Linear SVM:"</span>, <span class="bu">round</span>(accuracy_score(y_test, y_pred_svm), <span class="dv">4</span>))</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(classification_report(y_test, y_pred_svm, zero_division<span class="op">=</span><span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Accuracy Linear SVM: 0.4
+
+              precision    recall  f1-score   support
+
+    negative       0.00      0.00      0.00         5
+     neutral       0.67      0.80      0.73         5
+    positive       0.29      0.40      0.33         5
+
+    accuracy                           0.40        15
+   macro avg       0.32      0.40      0.35        15
+weighted avg       0.32      0.40      0.35        15
+</code></pre>
+</div>
+</div>
+</section>
+<section id="порівняння-результатів-моделей" class="level2">
+<h2 class="anchored" data-anchor-id="порівняння-результатів-моделей">13. Порівняння результатів моделей</h2>
+<p>Зведемо основні результати в одну таблицю. Для <em>лексиконного baseline</em> тут показано оцінку на всьому корпусі, а для моделей машинного навчання – оцінку на тестовій вибірці.</p>
+<div id="84cc45ea" class="cell" data-execution_count="15">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>results_df <span class="op">=</span> pd.DataFrame([</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"model"</span>: <span class="st">"Lexicon baseline"</span>, <span class="st">"accuracy"</span>: accuracy_score(corpus_df[<span class="st">"label"</span>], corpus_df[<span class="st">"lexicon_pred"</span>])},</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"model"</span>: <span class="st">"Multinomial Naive Bayes"</span>, <span class="st">"accuracy"</span>: accuracy_score(y_test, y_pred_nb)},</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"model"</span>: <span class="st">"Logistic Regression"</span>, <span class="st">"accuracy"</span>: accuracy_score(y_test, y_pred_lr)},</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"model"</span>: <span class="st">"Linear SVM"</span>, <span class="st">"accuracy"</span>: accuracy_score(y_test, y_pred_svm)},</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>]).sort_values(<span class="st">"accuracy"</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>results_df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Lexicon baseline</td>
+<td>0.770833</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Logistic Regression</td>
+<td>0.400000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">3</th>
+<td>Linear SVM</td>
+<td>0.400000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Multinomial Naive Bayes</td>
+<td>0.266667</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="0bb3463d" class="cell" data-execution_count="16">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">4</span>))</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>plt.bar(results_df[<span class="st">"model"</span>], results_df[<span class="st">"accuracy"</span>])</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Порівняння accuracy моделей"</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Accuracy"</span>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>plt.xticks(rotation<span class="op">=</span><span class="dv">20</span>, ha<span class="op">=</span><span class="st">"right"</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>plt.ylim(<span class="dv">0</span>, <span class="fl">1.05</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="LR7_sentiment_analysis_files/figure-html/cell-18-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="матриця-помилок-для-найкращої-моделі" class="level2">
+<h2 class="anchored" data-anchor-id="матриця-помилок-для-найкращої-моделі">14. Матриця помилок для найкращої моделі</h2>
+<p>У цьому блоці автоматично вибираємо найкращу модель за значенням <em>accuracy</em> на тестовій вибірці і будуємо для неї <em>матрицю помилок</em>.</p>
+<div id="9dec4082" class="cell" data-execution_count="17">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>test_model_predictions <span class="op">=</span> {</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Multinomial Naive Bayes"</span>: y_pred_nb,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Logistic Regression"</span>: y_pred_lr,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Linear SVM"</span>: y_pred_svm,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>best_model_name <span class="op">=</span> <span class="bu">max</span>(</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    test_model_predictions.keys(),</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    key<span class="op">=</span><span class="kw">lambda</span> name: accuracy_score(y_test, test_model_predictions[name])</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>best_predictions <span class="op">=</span> test_model_predictions[best_model_name]</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Найкраща модель на тестовій вибірці:"</span>, best_model_name)</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Accuracy:"</span>, <span class="bu">round</span>(accuracy_score(y_test, best_predictions), <span class="dv">4</span>))</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>labels_sorted <span class="op">=</span> <span class="bu">sorted</span>(y.unique())</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>cm <span class="op">=</span> confusion_matrix(y_test, best_predictions, labels<span class="op">=</span>labels_sorted)</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>disp <span class="op">=</span> ConfusionMatrixDisplay(confusion_matrix<span class="op">=</span>cm, display_labels<span class="op">=</span>labels_sorted)</span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>disp.plot(cmap<span class="op">=</span><span class="st">"Blues"</span>)</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f"Матриця помилок: </span><span class="sc">{</span>best_model_name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Найкраща модель на тестовій вибірці: Logistic Regression
+Accuracy: 0.4</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="LR7_sentiment_analysis_files/figure-html/cell-19-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="перегляд-конкретних-прогнозів" class="level2">
+<h2 class="anchored" data-anchor-id="перегляд-конкретних-прогнозів">15. Перегляд конкретних прогнозів</h2>
+<p>Тепер подивимось, які саме повідомлення потрапили до тестової вибірки і як їх класифікувала найкраща модель.</p>
+<div id="53287ebf" class="cell" data-execution_count="18">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>test_predictions_df <span class="op">=</span> corpus_df.loc[idx_test, [<span class="st">"doc_id"</span>, <span class="st">"text"</span>, <span class="st">"label"</span>]].copy()</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>test_predictions_df[<span class="st">"predicted"</span>] <span class="op">=</span> best_predictions</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>test_predictions_df[<span class="st">"is_correct"</span>] <span class="op">=</span> test_predictions_df[<span class="st">"label"</span>] <span class="op">==</span> test_predictions_df[<span class="st">"predicted"</span>]</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>test_predictions_df.sort_values([<span class="st">"is_correct"</span>, <span class="st">"label"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">doc_id</th>
+<th data-quarto-table-cell-role="th">text</th>
+<th data-quarto-table-cell-role="th">label</th>
+<th data-quarto-table-cell-role="th">predicted</th>
+<th data-quarto-table-cell-role="th">is_correct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">21</th>
+<td>b022</td>
+<td>підтримка відповіла із запізненням і не допомогла</td>
+<td>negative</td>
+<td>positive</td>
+<td>False</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">27</th>
+<td>b028</td>
+<td>система помилково визначає тональність повідомлень</td>
+<td>negative</td>
+<td>neutral</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">22</th>
+<td>b023</td>
+<td>результат виявився неточним і мало корисним</td>
+<td>negative</td>
+<td>positive</td>
+<td>False</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">18</th>
+<td>b019</td>
+<td>це поганий інструмент для аналізу повідомлень</td>
+<td>negative</td>
+<td>positive</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">25</th>
+<td>b026</td>
+<td>мені не сподобалась якість автоматичного аналізу</td>
+<td>negative</td>
+<td>positive</td>
+<td>False</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">41</th>
+<td>b042</td>
+<td>алгоритм повернув прогноз для кожного документа</td>
+<td>neutral</td>
+<td>positive</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">12</th>
+<td>b013</td>
+<td>система коректно визначає позитивні повідомлення</td>
+<td>positive</td>
+<td>neutral</td>
+<td>False</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>b010</td>
+<td>курс побудовано логічно і матеріал пояснено добре</td>
+<td>positive</td>
+<td>negative</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">11</th>
+<td>b012</td>
+<td>цей підхід дає якісні та зрозумілі результати</td>
+<td>positive</td>
+<td>negative</td>
+<td>False</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">31</th>
+<td>b032</td>
+<td>користувач надіслав текст у форму аналізу</td>
+<td>neutral</td>
+<td>neutral</td>
+<td>True</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">37</th>
+<td>b038</td>
+<td>дослідник зберіг результати у файл csv</td>
+<td>neutral</td>
+<td>neutral</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">35</th>
+<td>b036</td>
+<td>після очищення тексту побудовано tf idf представлення</td>
+<td>neutral</td>
+<td>neutral</td>
+<td>True</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">34</th>
+<td>b035</td>
+<td>у наборі даних є три класи тональності</td>
+<td>neutral</td>
+<td>neutral</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">45</th>
+<td>s001</td>
+<td>сервіс виявився дуже корисним і зручним</td>
+<td>positive</td>
+<td>positive</td>
+<td>True</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">10</th>
+<td>b011</td>
+<td>мені дуже сподобалась функція автоматичного аналізу</td>
+<td>positive</td>
+<td>positive</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="інтерпретація-ознак-у-logistic-regression" class="level2">
+<h2 class="anchored" data-anchor-id="інтерпретація-ознак-у-logistic-regression">16. Інтерпретація ознак у Logistic Regression</h2>
+<p>Однією з переваг <em>Logistic Regression</em> є можливість подивитися, які ознаки найбільше сприяють тому чи іншому класу. Нижче для кожного класу виводяться кілька найхарактерніших термінів.</p>
+<div id="3c38266b" class="cell" data-execution_count="19">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>feature_names <span class="op">=</span> np.array(vectorizer.get_feature_names_out())</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>class_names <span class="op">=</span> lr_model.classes_</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>top_k <span class="op">=</span> <span class="dv">8</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> class_index, class_name <span class="kw">in</span> <span class="bu">enumerate</span>(class_names):</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    coefs <span class="op">=</span> lr_model.coef_[class_index]</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    top_features <span class="op">=</span> feature_names[np.argsort(coefs)[<span class="op">-</span>top_k:]][::<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Клас: </span><span class="sc">{</span>class_name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">", "</span>.join(top_features))</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"-"</span> <span class="op">*</span> <span class="dv">60</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Клас: negative
+часто, роботу, дратує, цей, дає, повільна, неточна, програма незручна
+------------------------------------------------------------
+Клас: neutral
+містить, на, виконано, виконано середовищі, експеримент, експеримент виконано, середовищі python, середовищі
+------------------------------------------------------------
+Клас: positive
+швидко, дуже, для, роботи, зрозумілий приємний, зрозумілий, інтерфейс зрозумілий, приємний використанні
+------------------------------------------------------------</code></pre>
+</div>
+</div>
+</section>
+<section id="короткий-експеримент-з-новими-текстами" class="level2">
+<h2 class="anchored" data-anchor-id="короткий-експеримент-з-новими-текстами">17. Короткий експеримент з новими текстами</h2>
+<p>У цьому блоці можна перевірити роботу моделей на нових коротких фразах. Це дозволяє швидко побачити, як змінюються прогнози на прикладах, яких не було в корпусі.</p>
+<div id="4518ff3a" class="cell" data-execution_count="20">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>new_texts <span class="op">=</span> [</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"цей сервіс працює чудово і дуже швидко"</span>,</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"додаток жахливо зависає і дратує"</span>,</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"у звіті наведено результати експерименту за тиждень"</span>,</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"інтерфейс став зручнішим після оновлення"</span>,</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"я не задоволений якістю роботи системи"</span>,</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>new_texts_clean <span class="op">=</span> [clean_text(text) <span class="cf">for</span> text <span class="kw">in</span> new_texts]</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>X_new <span class="op">=</span> vectorizer.transform(new_texts_clean)</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>new_predictions_df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"text"</span>: new_texts,</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lexicon_pred"</span>: [lexicon_predict(text, sentiment_lexicon) <span class="cf">for</span> text <span class="kw">in</span> new_texts_clean],</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"nb_pred"</span>: nb_model.predict(X_new),</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lr_pred"</span>: lr_model.predict(X_new),</span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"svm_pred"</span>: svm_model.predict(X_new),</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>new_predictions_df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">text</th>
+<th data-quarto-table-cell-role="th">lexicon_pred</th>
+<th data-quarto-table-cell-role="th">nb_pred</th>
+<th data-quarto-table-cell-role="th">lr_pred</th>
+<th data-quarto-table-cell-role="th">svm_pred</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>цей сервіс працює чудово і дуже швидко</td>
+<td>positive</td>
+<td>positive</td>
+<td>positive</td>
+<td>positive</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>додаток жахливо зависає і дратує</td>
+<td>negative</td>
+<td>negative</td>
+<td>negative</td>
+<td>negative</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>у звіті наведено результати експерименту за тиждень</td>
+<td>neutral</td>
+<td>neutral</td>
+<td>neutral</td>
+<td>neutral</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>інтерфейс став зручнішим після оновлення</td>
+<td>neutral</td>
+<td>negative</td>
+<td>negative</td>
+<td>negative</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>я не задоволений якістю роботи системи</td>
+<td>neutral</td>
+<td>positive</td>
+<td>positive</td>
+<td>positive</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="коротка-інтерпретація-результатів" class="level2">
+<h2 class="anchored" data-anchor-id="коротка-інтерпретація-результатів">18. Коротка інтерпретація результатів</h2>
+<p>На цьому етапі потрібно звернути увагу на кілька моментів:</p>
+<ul>
+<li>чи перевищують моделі машинного навчання простий <em>лексиконний baseline</em>;</li>
+<li>які класи модель плутає найчастіше;</li>
+<li>чи є складними для моделі <em>нейтральні</em> повідомлення;</li>
+<li>як реагують моделі на короткі нові фрази.</li>
+</ul>
+</section>
+<section id="висновки" class="level2">
+<h2 class="anchored" data-anchor-id="висновки">Висновки</h2>
+<p>У висновках до роботи доцільно відобразити:</p>
+<ol type="1">
+<li>який корпус було використано;</li>
+<li>як виконувалось очищення тексту;</li>
+<li>який результат показав <em>лексиконний baseline</em>;</li>
+<li>яка з моделей машинного навчання виявилась найкращою;</li>
+<li>які типові труднощі спостерігались під час класифікації;</li>
+<li>які обмеження має побудований навчальний приклад.</li>
+</ol>
+</section>
+<section id="індивідуальне-завдання" class="level2">
+<h2 class="anchored" data-anchor-id="індивідуальне-завдання">Індивідуальне завдання</h2>
+<ol type="1">
+<li>Додайте до корпусу не менше <em>9 власних повідомлень</em>.</li>
+<li>Перевірте, як зміниться якість моделей після розширення корпусу.</li>
+<li>Модифікуйте словник <code>sentiment_lexicon</code>, додавши власні оцінні слова.</li>
+<li>Порівняйте результати для <code>ngram_range=(1, 1)</code> та <code>ngram_range=(1, 2)</code>.</li>
+<li>Підготуйте 5 нових тестових фраз і поясніть отримані прогнози.</li>
+</ol>
+</section>
+<section id="контрольні-питання" class="level2">
+<h2 class="anchored" data-anchor-id="контрольні-питання">Контрольні питання</h2>
+<ol type="1">
+<li>У чому полягає відмінність між <em>тематичною класифікацією</em> та <em>аналізом тональності</em>?</li>
+<li>Що таке <em>лексиконний підхід</em> до sentiment analysis?</li>
+<li>Для чого потрібне <em>TF-IDF</em>-представлення?</li>
+<li>Чому вибірку потрібно ділити на <em>навчальну</em> і <em>тестову</em> частини?</li>
+<li>Які переваги і недоліки мають <em>Naive Bayes</em>, <em>Logistic Regression</em> та <em>Linear SVM</em>?</li>
+<li>Що показує <em>матриця помилок</em>?</li>
+<li>Чому нейтральний клас часто виявляється складним для класифікації?</li>
+</ol>
+</section>
+<section id="вимоги-до-звіту" class="level2">
+<h2 class="anchored" data-anchor-id="вимоги-до-звіту">Вимоги до звіту</h2>
+<p>У звіті потрібно подати:</p>
+<ul>
+<li>тему і мету лабораторної роботи;</li>
+<li>короткі теоретичні відомості;</li>
+<li>опис використаного корпусу;</li>
+<li>основні фрагменти коду;</li>
+<li>отримані результати для <em>лексиконного baseline</em> і моделей машинного навчання;</li>
+<li>таблицю або рисунок з порівнянням моделей;</li>
+<li>матрицю помилок;</li>
+<li>приклади прогнозів для нових фраз;</li>
+<li>змістовні висновки.</li>
+</ul>
+</section>
+<section id="додаток-а.-приклад-запуску-аналізу-для-зовнішнього-csv" class="level2">
+<h2 class="anchored" data-anchor-id="додаток-а.-приклад-запуску-аналізу-для-зовнішнього-csv">Додаток А. Приклад запуску аналізу для зовнішнього CSV</h2>
+<p>Нижче наведено шаблон для роботи з окремим CSV-файлом. Файл має містити стовпці <code>text</code> і <code>label</code>. За потреби можна додати і <code>doc_id</code>.</p>
+<div id="282cf404" class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># df_external = pd.read_csv("my_sentiment_texts.csv")</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co"># df_external["text"] = df_external["text"].astype(str)</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="co"># df_external["label"] = df_external["label"].astype(str).str.lower()</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co"># df_external["clean_text"] = df_external["text"].apply(clean_text)</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co"># X_ext = vectorizer.fit_transform(df_external["clean_text"])</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="co"># y_ext = df_external["label"]</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="co"># X_train_ext, X_test_ext, y_train_ext, y_test_ext = train_test_split(</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     X_ext, y_ext, test_size=0.3, random_state=42, stratify=y_ext</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="co"># model_ext = LogisticRegression(max_iter=3000)</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a><span class="co"># model_ext.fit(X_train_ext, y_train_ext)</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a><span class="co"># y_pred_ext = model_ext.predict(X_test_ext)</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="co"># print(classification_report(y_test_ext, y_pred_ext, zero_division=0))</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="додаток-б.-приклад-дослідження-впливу-n-грам" class="level2">
+<h2 class="anchored" data-anchor-id="додаток-б.-приклад-дослідження-впливу-n-грам">Додаток Б. Приклад дослідження впливу n-грам</h2>
+<p>Цей фрагмент можна використати для короткого експерименту: чи покращується результат, якщо перейти від уніграм до уніграм і біграм.</p>
+<div id="83b8af0a" class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># for ngram_range in [(1, 1), (1, 2)]:</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="co">#     vectorizer_tmp = TfidfVectorizer(min_df=1, ngram_range=ngram_range)</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="co">#     X_tmp = vectorizer_tmp.fit_transform(corpus_df["clean_text"])</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="co">#     X_train_tmp, X_test_tmp, y_train_tmp, y_test_tmp = train_test_split(</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="co">#         X_tmp, y, test_size=0.3, random_state=42, stratify=y</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="co">#     )</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a><span class="co">#     model_tmp = LogisticRegression(max_iter=3000)</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     model_tmp.fit(X_train_tmp, y_train_tmp)</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="co">#     y_pred_tmp = model_tmp.predict(X_test_tmp)</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     print("ngram_range =", ngram_range)</span></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="co">#     print("accuracy =", round(accuracy_score(y_test_tmp, y_pred_tmp), 4))</span></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a><span class="co">#     print("-" * 40)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="додаток-в.-приклад-збереження-результатів-у-csv" class="level2">
+<h2 class="anchored" data-anchor-id="додаток-в.-приклад-збереження-результатів-у-csv">Додаток В. Приклад збереження результатів у CSV</h2>
+<p>Отримані прогнози і зведені результати можна зберігати у зовнішні файли.</p>
+<div id="74d471f3" class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># results_df.to_csv("lab7_model_comparison.csv", index=False, encoding="utf-8-sig")</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co"># test_predictions_df.to_csv("lab7_test_predictions.csv", index=False, encoding="utf-8-sig")</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co"># new_predictions_df.to_csv("lab7_new_text_predictions.csv", index=False, encoding="utf-8-sig")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="список-літератури" class="level2">
+<h2 class="anchored" data-anchor-id="список-літератури">Список літератури</h2>
+<ol type="1">
+<li>Cambria, E., Schuller, B., Xia, Y., &amp; Havasi, C. (2013). New avenues in opinion mining and sentiment analysis. <em>IEEE Intelligent Systems, 28</em>(2), 15–21. https://doi.org/10.1109/MIS.2013.30</li>
+<li>Liu, B. (2012). <em>Sentiment analysis and opinion mining</em>. Morgan &amp; Claypool Publishers.</li>
+<li>Medhat, W., Hassan, A., &amp; Korashy, H. (2014). Sentiment analysis algorithms and applications: A survey. <em>Ain Shams Engineering Journal, 5</em>(4), 1093–1113. https://doi.org/10.1016/j.asej.2014.04.011</li>
+<li>Pang, B., &amp; Lee, L. (2008). Opinion mining and sentiment analysis. <em>Foundations and Trends in Information Retrieval, 2</em>(1–2), 1–135. https://doi.org/10.1561/1500000011</li>
+<li>Pang, B., Lee, L., &amp; Vaithyanathan, S. (2002). Thumbs up? Sentiment classification using machine learning techniques. In <em>Proceedings of the ACL Conference on Empirical Methods in Natural Language Processing</em> (pp.&nbsp;79–86).</li>
+<li>Zhang, L., Wang, S., &amp; Liu, B. (2018). Deep learning for sentiment analysis: A survey. <em>Wiley Interdisciplinary Reviews: Data Mining and Knowledge Discovery, 8</em>(4), e1253. https://doi.org/10.1002/widm.1253</li>
+</ol>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
